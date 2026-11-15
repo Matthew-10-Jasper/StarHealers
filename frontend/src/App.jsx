@@ -3,6 +3,7 @@ import Navbar from './components/common/Navbar';
 import Sidebar from './components/common/Sidebar';
 import WelcomeView from './components/views/WelcomeView';
 import LoginView from './components/views/LoginView';
+import MobileBottomNav from './components/common/MobileBottomNav';
 import AstronautDashboardView from './components/views/AstronautDashboardView';
 import VitalsDashboard from './components/modules/Module1Vitals/VitalsDashboard';
 import BodyMapViewer from './components/modules/Module2BodyMap/BodyMapViewer';
@@ -353,7 +354,7 @@ export default function App() {
         />
 
         {/* Dynamic Workspace Canvas */}
-        <main className="flex-1 p-4 lg:p-6 overflow-y-auto max-h-[calc(100vh-57px)]">
+        <main className="flex-1 p-4 lg:p-6 pb-20 md:pb-6 overflow-y-auto max-h-[calc(100vh-57px)]">
           {activeTab === 'astronaut-dashboard' && (
             <AstronautDashboardView
               astronaut={selectedAstronaut}
@@ -436,6 +437,13 @@ export default function App() {
           )}
         </main>
       </div>
+
+      {/* Mobile Bottom Navigation Bar (Phones) */}
+      <MobileBottomNav
+        activeTab={activeTab}
+        onSelectTab={setActiveTab}
+        alertsCount={activeAlertsCount}
+      />
     </div>
   );
 }
