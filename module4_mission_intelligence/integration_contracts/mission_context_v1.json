@@ -1,0 +1,56 @@
+{
+  "$schema": "./mission_context_v1_schema.json",
+  "contract_name": "STARHEALERS_MISSION_CONTEXT_DISTRIBUTION_CONTRACT",
+  "schema_version": "1.0.0",
+  "timestamp": "2026-11-15T12:00:00Z",
+  "context_id": "CTX_001",
+  "context_version": 1,
+  "mission_id": "ARES_VOYAGER_MARS",
+  "planned_profile": "MARS",
+  "actual_mission_phase": "HELIOCENTRIC_MARS_TRANSIT",
+  "operational_state": "NOMINAL",
+  "gravity_environment": "MICROGRAVITY",
+  "gravity_value_g": 0.0001,
+  "communication": {
+    "status": "DELAYED",
+    "expected_delay_seconds": 1200.0,
+    "bandwidth_mbps": 5.0,
+    "earth_reachable": true,
+    "queued_reports_count": 0,
+    "last_contact_timestamp": "2026-11-15T11:58:30Z",
+    "last_acknowledged_timestamp": "2026-11-15T11:45:00Z"
+  },
+  "environment": {
+    "radiation_status": "UNKNOWN",
+    "cabin_pressure_status": "NOMINAL",
+    "co2_status": "UNKNOWN",
+    "life_support_status": "NOMINAL",
+    "habitat_status": "NOMINAL",
+    "observed_parameters": {
+      "cabin_pressure_kpa": 70.2,
+      "o2_percentage": 26.4
+    }
+  },
+  "data_quality": {
+    "overall_status": "PARTIAL",
+    "unknown_parameters": [
+      "radiation_status",
+      "co2_status"
+    ],
+    "stale_parameters": [],
+    "contradictory_parameters": [],
+    "last_telemetry_timestamp": "2026-11-15T11:59:50Z"
+  },
+  "active_deviations_count": 0,
+  "deviations_summary": [],
+  "data_source": "SIMULATED",
+  "consumer_targets": [
+    "MODULE_1_ASTRONAUT_HEALTH_MONITORING",
+    "MODULE_2_HUMAN_BODY_MAP_INTERFACE",
+    "MODULE_3_CLINICAL_TRIAGE_ENGINE",
+    "MODULE_5_RADIATION_CO2_SLEEP_SIMULATOR",
+    "MODULE_6_MISSION_DURATION_CONTEXT",
+    "MODULE_7_ENVIRONMENT_ANALYTICS"
+  ]
+}
+

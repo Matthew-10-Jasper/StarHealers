@@ -1,0 +1,33 @@
+{
+  "mission_id": "ISS_EXPEDITION_LEO",
+  "mission_name": "International Space Station Expedition - Low Earth Orbit",
+  "destination": "LOW_EARTH_ORBIT",
+  "mission_phase": "ORBITAL_STATION_OPERATIONS",
+  "gravity_environment": "MICROGRAVITY",
+  "gravity_value_g": 0.0001,
+  "habitat_type": "PRESSURIZED_MODULAR_STATION",
+  "expected_duration_days": 180,
+  "communication_characteristics": {
+    "link_type": "TDRSS_DIRECT_AND_RELAY",
+    "expected_delay_seconds": 1.2,
+    "bandwidth_mbps": 300.0,
+    "reachability": "CONTINUOUS_HIGH_AVAILABILITY"
+  },
+  "environmental_monitoring_categories": [
+    "RADIATION",
+    "CABIN_PRESSURE",
+    "CO2_CONCENTRATION",
+    "LIFE_SUPPORT",
+    "HABITAT_INTEGRITY",
+    "THERMAL_REGULATION"
+  ],
+  "nominal_bounds": {
+    "cabin_pressure_kpa": { "min": 97.9, "max": 102.7, "target": 101.3 },
+    "co2_partial_pressure_mmhg": { "min": 0.1, "max": 3.0, "target": 1.5 },
+    "o2_percentage": { "min": 19.5, "max": 23.5, "target": 21.0 },
+    "radiation_msv_per_day": { "min": 0.05, "max": 1.0, "target": 0.3 }
+  },
+  "configuration_version": "1.0.0",
+  "data_source": "SIMULATED"
+}
+

@@ -1,0 +1,94 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "StarhealersMissionContextV1",
+  "description": "Standardized Integration Contract for Starhealers Module 4 Mission Context Distribution",
+  "type": "object",
+  "required": [
+    "context_id",
+    "context_version",
+    "mission_id",
+    "planned_profile",
+    "actual_mission_phase",
+    "operational_state",
+    "gravity_environment",
+    "communication",
+    "environment",
+    "data_quality",
+    "data_source"
+  ],
+  "properties": {
+    "context_id": { "type": "string" },
+    "context_version": { "type": "integer", "minimum": 1 },
+    "mission_id": { "type": "string" },
+    "planned_profile": { "type": "string" },
+    "actual_mission_phase": { "type": "string" },
+    "operational_state": {
+      "type": "string",
+      "enum": ["NOMINAL", "DEGRADED", "CONTINGENCY", "UNKNOWN", "RECOVERY"]
+    },
+    "gravity_environment": { "type": "string" },
+    "gravity_value_g": { "type": "number" },
+    "communication": {
+      "type": "object",
+      "required": ["status", "expected_delay_seconds"],
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": ["OPTIMAL", "NOMINAL", "DELAYED", "INTERMITTENT", "DEGRADED", "BLACKOUT", "UNKNOWN"]
+        },
+        "expected_delay_seconds": { "type": "number" },
+        "bandwidth_mbps": { "type": "number" },
+        "earth_reachable": { "type": "boolean" },
+        "queued_reports_count": { "type": "integer" },
+        "last_contact_timestamp": { "type": ["string", "null"] },
+        "last_acknowledged_timestamp": { "type": ["string", "null"] }
+      }
+    },
+    "environment": {
+      "type": "object",
+      "required": ["radiation_status", "cabin_pressure_status", "co2_status", "life_support_status"],
+      "properties": {
+        "radiation_status": { "type": "string" },
+        "cabin_pressure_status": { "type": "string" },
+        "co2_status": { "type": "string" },
+        "life_support_status": { "type": "string" },
+        "habitat_status": { "type": "string" },
+        "observed_parameters": { "type": "object" }
+      }
+    },
+    "data_quality": {
+      "type": "object",
+      "required": ["overall_status", "unknown_parameters"],
+      "properties": {
+        "overall_status": {
+          "type": "string",
+          "enum": ["VERIFIED", "PARTIAL", "STALE", "UNVERIFIED", "CORRUPTED", "UNKNOWN"]
+        },
+        "unknown_parameters": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "stale_parameters": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "contradictory_parameters": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "last_telemetry_timestamp": { "type": ["string", "null"] }
+      }
+    },
+    "active_deviations_count": { "type": "integer" },
+    "deviations_summary": { "type": "array" },
+    "data_source": {
+      "type": "string",
+      "enum": ["SIMULATED", "MANUAL_INPUT", "TELEMETRY", "EXTERNAL_REFERENCE"]
+    },
+    "consumer_targets": {
+      "type": "array",
+      "items": { "type": "string" }
+    }
+  }
+}
+

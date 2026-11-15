@@ -1,0 +1,35 @@
+{
+  "mission_id": "ARES_VOYAGER_MARS",
+  "mission_name": "Ares Deep Space Mars Expedition",
+  "destination": "MARS",
+  "mission_phase": "HELIOCENTRIC_MARS_TRANSIT",
+  "gravity_environment": "MICROGRAVITY",
+  "gravity_value_g": 0.0001,
+  "habitat_type": "DEEP_SPACE_TRANSIT_VEHICLE",
+  "expected_duration_days": 900,
+  "communication_characteristics": {
+    "link_type": "DEEP_SPACE_NETWORK_HIGH_GAIN",
+    "expected_delay_seconds": 1200.0,
+    "bandwidth_mbps": 5.0,
+    "reachability": "HIGH_LATENCY_DELAY_TOLERANT"
+  },
+  "environmental_monitoring_categories": [
+    "RADIATION",
+    "GALACTIC_COSMIC_RAYS",
+    "SOLAR_PARTICLE_EVENTS",
+    "CABIN_PRESSURE",
+    "CO2_CONCENTRATION",
+    "LIFE_SUPPORT",
+    "CLOSED_LOOP_ECLSS",
+    "HABITAT_INTEGRITY"
+  ],
+  "nominal_bounds": {
+    "cabin_pressure_kpa": { "min": 68.0, "max": 72.0, "target": 70.3 },
+    "co2_partial_pressure_mmhg": { "min": 0.1, "max": 2.5, "target": 1.0 },
+    "o2_percentage": { "min": 25.0, "max": 29.0, "target": 26.5 },
+    "radiation_msv_per_day": { "min": 1.0, "max": 3.0, "target": 1.8 }
+  },
+  "configuration_version": "1.0.0",
+  "data_source": "SIMULATED"
+}
+

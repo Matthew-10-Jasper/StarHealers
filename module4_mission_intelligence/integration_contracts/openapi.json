@@ -1,0 +1,1467 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "STARHEALERS Mission Environment Intelligence",
+    "description": "Module 4 \u2014 Mission Environment Intelligence & Adaptive Mission Context Manager. Autonomous astronaut health-support and deep-space mission monitoring platform.",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/health": {
+      "get": {
+        "tags": [
+          "System Health"
+        ],
+        "summary": "Get Health",
+        "description": "Health check endpoint confirming Module 4 operational readiness.",
+        "operationId": "get_health_health_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/missions": {
+      "get": {
+        "tags": [
+          "Mission Profiles"
+        ],
+        "summary": "List Missions",
+        "description": "Lists all registered mission profiles (ISS, Moon, Mars, etc.).",
+        "operationId": "list_missions_missions_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/MissionProfile"
+                  },
+                  "type": "array",
+                  "title": "Response List Missions Missions Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/missions/current": {
+      "get": {
+        "tags": [
+          "Current Mission Context"
+        ],
+        "summary": "Get Current Mission Context",
+        "description": "Returns the comprehensive active planned and actual mission context.",
+        "operationId": "get_current_mission_context_missions_current_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MissionContextResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/missions/history": {
+      "get": {
+        "tags": [
+          "History & Audit"
+        ],
+        "summary": "Get Mission History",
+        "description": "Returns complete historical audit trail and state transitions with pagination that survives restarts.",
+        "operationId": "get_mission_history_missions_history_get",
+        "parameters": [
+          {
+            "name": "mission_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Mission Id"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 500,
+              "minimum": 1,
+              "default": 50,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0,
+              "title": "Offset"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/missions/select": {
+      "post": {
+        "tags": [
+          "Mission Profiles"
+        ],
+        "summary": "Select Mission Profile",
+        "description": "Switches the active mission profile while preserving historical audit records and continuity.",
+        "operationId": "select_mission_profile_missions_select_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MissionSelectRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MissionContextResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/missions/current/deviations": {
+      "get": {
+        "tags": [
+          "Deviations"
+        ],
+        "summary": "Get Current Deviations",
+        "description": "Returns all currently active detected discrepancies between planned and verified actual environment.",
+        "operationId": "get_current_deviations_missions_current_deviations_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/MissionDeviation"
+                  },
+                  "type": "array",
+                  "title": "Response Get Current Deviations Missions Current Deviations Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/missions/observations": {
+      "post": {
+        "tags": [
+          "Environmental Observations"
+        ],
+        "summary": "Ingest Observations",
+        "description": "Ingests incoming sensor observations, performs unit and staleness validation,\ndetects contradictory readings, updates environmental state, and triggers deviation evaluation.",
+        "operationId": "ingest_observations_missions_observations_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ObservationBatchCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Ingest Observations Missions Observations Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/missions/transition": {
+      "post": {
+        "tags": [
+          "Contingency Manager"
+        ],
+        "summary": "Request State Transition",
+        "description": "Executes a controlled, validated state transition between operational states.",
+        "operationId": "request_state_transition_missions_transition_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ContextTransitionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MissionContextResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/missions/context/update": {
+      "post": {
+        "tags": [
+          "Context Reconfiguration"
+        ],
+        "summary": "Update Mission Context",
+        "description": "Atomic reconfiguration of actual mission context attributes (phase, gravity, etc.).\nPreserves historical records and unaffected fields; increments context version.",
+        "operationId": "update_mission_context_missions_context_update_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ContextUpdateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MissionContextResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/missions/anomalies/detect": {
+      "get": {
+        "tags": [
+          "Mission Environment Intelligence"
+        ],
+        "summary": "Detect Mission Anomalies",
+        "description": "Executes multi-layered anomaly detection across current spacecraft observations,\ncombining physics limits, statistical Z-scores (SciPy), and explainable Isolation Forest ML.",
+        "operationId": "detect_mission_anomalies_missions_anomalies_detect_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LayeredAnomalyReport"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/missions/{mission_id}": {
+      "get": {
+        "tags": [
+          "Mission Profiles"
+        ],
+        "summary": "Get Mission By Id",
+        "description": "Retrieves a specific mission profile configuration by ID.",
+        "operationId": "get_mission_by_id_missions__mission_id__get",
+        "parameters": [
+          {
+            "name": "mission_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Mission Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MissionProfile"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/missions/{mission_id}/hazards": {
+      "get": {
+        "tags": [
+          "Mission Hazards"
+        ],
+        "summary": "Get Mission Hazards",
+        "description": "Returns all environmental hazards, active deviations, and nominal bounds for a mission.",
+        "operationId": "get_mission_hazards_missions__mission_id__hazards_get",
+        "parameters": [
+          {
+            "name": "mission_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Mission Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/integrations/contract": {
+      "get": {
+        "tags": [
+          "Integration Contracts"
+        ],
+        "summary": "Get Context Integration Contract",
+        "description": "Produces the standardized, versioned JSON distribution contract for Modules 1, 2, 3, 5, 6, 7.",
+        "operationId": "get_context_integration_contract_integrations_contract_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/integrations/deliver/{target_module}": {
+      "post": {
+        "tags": [
+          "Integration Contracts"
+        ],
+        "summary": "Deliver Context To Mock Consumer",
+        "description": "Simulates delivery of Module 4 context to downstream teammate module adapters.",
+        "operationId": "deliver_context_to_mock_consumer_integrations_deliver__target_module__post",
+        "parameters": [
+          {
+            "name": "target_module",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Target Module"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/simulator/scenario": {
+      "post": {
+        "tags": [
+          "Development Simulator"
+        ],
+        "summary": "Run Simulator Scenario",
+        "description": "Triggers realistic simulated mission events and sensor streams clearly labeled SIMULATED.",
+        "operationId": "run_simulator_scenario_simulator_scenario_post",
+        "parameters": [
+          {
+            "name": "scenario",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "COMM_LOSS, LIFE_SUPPORT, CABIN_DEPRESSURIZATION, RADIATION_SPIKE, RESTORE_NOMINAL",
+              "title": "Scenario"
+            },
+            "description": "COMM_LOSS, LIFE_SUPPORT, CABIN_DEPRESSURIZATION, RADIATION_SPIKE, RESTORE_NOMINAL"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/simulator/generate-stream": {
+      "post": {
+        "tags": [
+          "Development Simulator"
+        ],
+        "summary": "Generate Simulated Stream",
+        "description": "Generates a nominal synthetic sensor stream for the active destination.",
+        "operationId": "generate_simulated_stream_simulator_generate_stream_post",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "AnomalyExplanation": {
+        "properties": {
+          "layer": {
+            "type": "string",
+            "title": "Layer",
+            "description": "Detection layer: SENSOR_LIMITS, DATA_QUALITY, ENGINEERING_PHYSICS, STATISTICAL_ZSCORE, or ML_ISOLATION_FOREST"
+          },
+          "parameter": {
+            "type": "string",
+            "title": "Parameter"
+          },
+          "observed_value": {
+            "type": "number",
+            "title": "Observed Value"
+          },
+          "expected_range": {
+            "anyOf": [
+              {
+                "prefixItems": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ],
+                "type": "array",
+                "maxItems": 2,
+                "minItems": 2
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expected Range"
+          },
+          "severity": {
+            "$ref": "#/components/schemas/DeviationSeverity"
+          },
+          "confidence_score": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Confidence Score"
+          },
+          "explanation": {
+            "type": "string",
+            "title": "Explanation"
+          },
+          "contributing_factors": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Contributing Factors"
+          },
+          "is_advisory": {
+            "type": "boolean",
+            "title": "Is Advisory",
+            "default": true
+          }
+        },
+        "type": "object",
+        "required": [
+          "layer",
+          "parameter",
+          "observed_value",
+          "severity",
+          "confidence_score",
+          "explanation"
+        ],
+        "title": "AnomalyExplanation"
+      },
+      "CommStatus": {
+        "type": "string",
+        "enum": [
+          "OPTIMAL",
+          "NOMINAL",
+          "DELAYED",
+          "INTERMITTENT",
+          "DEGRADED",
+          "BLACKOUT",
+          "UNKNOWN"
+        ],
+        "title": "CommStatus"
+      },
+      "CommunicationCharacteristics": {
+        "properties": {
+          "link_type": {
+            "type": "string",
+            "title": "Link Type",
+            "description": "Link type, e.g. TDRSS or DSN"
+          },
+          "expected_delay_seconds": {
+            "type": "number",
+            "minimum": 0.0,
+            "title": "Expected Delay Seconds",
+            "description": "One-way light-time delay in seconds"
+          },
+          "bandwidth_mbps": {
+            "type": "number",
+            "exclusiveMinimum": 0.0,
+            "title": "Bandwidth Mbps",
+            "description": "Available bandwidth in megabits per second"
+          },
+          "reachability": {
+            "type": "string",
+            "title": "Reachability",
+            "description": "Reachability mode"
+          }
+        },
+        "type": "object",
+        "required": [
+          "link_type",
+          "expected_delay_seconds",
+          "bandwidth_mbps",
+          "reachability"
+        ],
+        "title": "CommunicationCharacteristics"
+      },
+      "CommunicationContext": {
+        "properties": {
+          "status": {
+            "$ref": "#/components/schemas/CommStatus",
+            "default": "NOMINAL"
+          },
+          "expected_delay_seconds": {
+            "type": "number",
+            "title": "Expected Delay Seconds",
+            "default": 1.2
+          },
+          "bandwidth_mbps": {
+            "type": "number",
+            "title": "Bandwidth Mbps",
+            "default": 50.0
+          },
+          "earth_reachable": {
+            "type": "boolean",
+            "title": "Earth Reachable",
+            "default": true
+          },
+          "queued_reports_count": {
+            "type": "integer",
+            "title": "Queued Reports Count",
+            "default": 0
+          },
+          "last_contact_timestamp": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Contact Timestamp"
+          },
+          "last_acknowledged_timestamp": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Acknowledged Timestamp"
+          }
+        },
+        "type": "object",
+        "title": "CommunicationContext"
+      },
+      "ContextTransitionRequest": {
+        "properties": {
+          "target_state": {
+            "$ref": "#/components/schemas/OperationalState"
+          },
+          "reason": {
+            "type": "string",
+            "title": "Reason"
+          },
+          "evidence": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Evidence"
+          },
+          "operator_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Operator Id",
+            "default": "MISSION_CONTROLLER"
+          }
+        },
+        "type": "object",
+        "required": [
+          "target_state",
+          "reason"
+        ],
+        "title": "ContextTransitionRequest"
+      },
+      "ContextUpdateRequest": {
+        "properties": {
+          "actual_mission_phase": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Actual Mission Phase"
+          },
+          "gravity_environment": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/GravityEnvironment"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "gravity_value_g": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Gravity Value G"
+          },
+          "reason": {
+            "type": "string",
+            "title": "Reason"
+          },
+          "evidence": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Evidence"
+          },
+          "operator_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Operator Id",
+            "default": "MISSION_CONTROLLER"
+          }
+        },
+        "type": "object",
+        "required": [
+          "reason"
+        ],
+        "title": "ContextUpdateRequest"
+      },
+      "DataQualityContext": {
+        "properties": {
+          "overall_status": {
+            "$ref": "#/components/schemas/QualityStatus",
+            "default": "UNKNOWN"
+          },
+          "unknown_parameters": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Unknown Parameters"
+          },
+          "stale_parameters": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Stale Parameters"
+          },
+          "contradictory_parameters": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Contradictory Parameters"
+          },
+          "last_telemetry_timestamp": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Telemetry Timestamp"
+          }
+        },
+        "type": "object",
+        "title": "DataQualityContext"
+      },
+      "DataSource": {
+        "type": "string",
+        "enum": [
+          "SIMULATED",
+          "MANUAL_INPUT",
+          "TELEMETRY",
+          "EXTERNAL_REFERENCE"
+        ],
+        "title": "DataSource"
+      },
+      "DeviationSeverity": {
+        "type": "string",
+        "enum": [
+          "INFO",
+          "WARNING",
+          "CRITICAL",
+          "UNKNOWN"
+        ],
+        "title": "DeviationSeverity"
+      },
+      "EnvironmentStatus": {
+        "properties": {
+          "radiation_status": {
+            "type": "string",
+            "title": "Radiation Status",
+            "default": "UNKNOWN"
+          },
+          "cabin_pressure_status": {
+            "type": "string",
+            "title": "Cabin Pressure Status",
+            "default": "UNKNOWN"
+          },
+          "co2_status": {
+            "type": "string",
+            "title": "Co2 Status",
+            "default": "UNKNOWN"
+          },
+          "life_support_status": {
+            "type": "string",
+            "title": "Life Support Status",
+            "default": "UNKNOWN"
+          },
+          "habitat_status": {
+            "type": "string",
+            "title": "Habitat Status",
+            "default": "UNKNOWN"
+          },
+          "observed_parameters": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Observed Parameters"
+          },
+          "parameter_timestamps": {
+            "additionalProperties": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "type": "object",
+            "title": "Parameter Timestamps"
+          }
+        },
+        "type": "object",
+        "title": "EnvironmentStatus"
+      },
+      "GravityEnvironment": {
+        "type": "string",
+        "enum": [
+          "MICROGRAVITY",
+          "LUNAR_GRAVITY",
+          "MARTIAN_GRAVITY",
+          "EARTH_STANDARD",
+          "CENTRIFUGAL_ARTIFICIAL",
+          "UNKNOWN"
+        ],
+        "title": "GravityEnvironment"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "LayeredAnomalyReport": {
+        "properties": {
+          "timestamp": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Timestamp"
+          },
+          "total_anomalies_detected": {
+            "type": "integer",
+            "title": "Total Anomalies Detected",
+            "default": 0
+          },
+          "highest_severity": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/DeviationSeverity"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "anomalies": {
+            "items": {
+              "$ref": "#/components/schemas/AnomalyExplanation"
+            },
+            "type": "array",
+            "title": "Anomalies"
+          },
+          "ml_isolation_score": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ml Isolation Score"
+          },
+          "ml_is_anomaly": {
+            "type": "boolean",
+            "title": "Ml Is Anomaly",
+            "default": false
+          },
+          "metadata": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Metadata"
+          }
+        },
+        "type": "object",
+        "title": "LayeredAnomalyReport"
+      },
+      "MissionContextResponse": {
+        "properties": {
+          "context_id": {
+            "type": "string",
+            "title": "Context Id"
+          },
+          "context_version": {
+            "type": "integer",
+            "title": "Context Version",
+            "default": 1
+          },
+          "mission_id": {
+            "type": "string",
+            "title": "Mission Id"
+          },
+          "planned_profile": {
+            "type": "string",
+            "title": "Planned Profile"
+          },
+          "actual_mission_phase": {
+            "type": "string",
+            "title": "Actual Mission Phase"
+          },
+          "operational_state": {
+            "$ref": "#/components/schemas/OperationalState",
+            "default": "NOMINAL"
+          },
+          "gravity_environment": {
+            "$ref": "#/components/schemas/GravityEnvironment"
+          },
+          "gravity_value_g": {
+            "type": "number",
+            "title": "Gravity Value G",
+            "default": 0.0001
+          },
+          "communication": {
+            "$ref": "#/components/schemas/CommunicationContext"
+          },
+          "environment": {
+            "$ref": "#/components/schemas/EnvironmentStatus"
+          },
+          "data_quality": {
+            "$ref": "#/components/schemas/DataQualityContext"
+          },
+          "active_deviations": {
+            "items": {
+              "$ref": "#/components/schemas/MissionDeviation"
+            },
+            "type": "array",
+            "title": "Active Deviations"
+          },
+          "data_source": {
+            "$ref": "#/components/schemas/DataSource",
+            "default": "SIMULATED"
+          },
+          "last_updated": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Last Updated"
+          }
+        },
+        "type": "object",
+        "required": [
+          "mission_id",
+          "planned_profile",
+          "actual_mission_phase",
+          "gravity_environment",
+          "communication",
+          "environment",
+          "data_quality"
+        ],
+        "title": "MissionContextResponse"
+      },
+      "MissionDeviation": {
+        "properties": {
+          "deviation_id": {
+            "type": "string",
+            "title": "Deviation Id"
+          },
+          "deviation_name": {
+            "type": "string",
+            "title": "Deviation Name"
+          },
+          "category": {
+            "type": "string",
+            "title": "Category"
+          },
+          "expected_condition": {
+            "type": "string",
+            "title": "Expected Condition"
+          },
+          "actual_condition": {
+            "type": "string",
+            "title": "Actual Condition"
+          },
+          "evidence": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Evidence"
+          },
+          "severity": {
+            "$ref": "#/components/schemas/DeviationSeverity"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Timestamp"
+          },
+          "source": {
+            "$ref": "#/components/schemas/DataSource",
+            "default": "SIMULATED"
+          },
+          "confirmation_status": {
+            "type": "string",
+            "title": "Confirmation Status",
+            "description": "UNCONFIRMED, CONFIRMED, RESOLVED",
+            "default": "CONFIRMED"
+          },
+          "resolved": {
+            "type": "boolean",
+            "title": "Resolved",
+            "default": false
+          },
+          "resolution_notes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Resolution Notes"
+          }
+        },
+        "type": "object",
+        "required": [
+          "deviation_name",
+          "category",
+          "expected_condition",
+          "actual_condition",
+          "severity"
+        ],
+        "title": "MissionDeviation"
+      },
+      "MissionProfile": {
+        "properties": {
+          "mission_id": {
+            "type": "string",
+            "title": "Mission Id",
+            "description": "Unique identifier for the mission profile"
+          },
+          "mission_name": {
+            "type": "string",
+            "title": "Mission Name",
+            "description": "Human-readable title"
+          },
+          "destination": {
+            "type": "string",
+            "title": "Destination",
+            "description": "Primary destination, e.g. LOW_EARTH_ORBIT, MOON, MARS"
+          },
+          "mission_phase": {
+            "type": "string",
+            "title": "Mission Phase",
+            "description": "Planned phase of operation"
+          },
+          "gravity_environment": {
+            "$ref": "#/components/schemas/GravityEnvironment",
+            "description": "Gravity classification"
+          },
+          "gravity_value_g": {
+            "type": "number",
+            "minimum": 0.0,
+            "title": "Gravity Value G",
+            "description": "Effective gravitational acceleration in g (Earth=1.0)"
+          },
+          "habitat_type": {
+            "type": "string",
+            "title": "Habitat Type",
+            "description": "Pressurized habitat structure classification"
+          },
+          "expected_duration_days": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expected Duration Days",
+            "description": "Planned mission duration in days"
+          },
+          "communication_characteristics": {
+            "$ref": "#/components/schemas/CommunicationCharacteristics"
+          },
+          "environmental_monitoring_categories": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Environmental Monitoring Categories"
+          },
+          "nominal_bounds": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/ParameterBound"
+            },
+            "type": "object",
+            "title": "Nominal Bounds"
+          },
+          "configuration_version": {
+            "type": "string",
+            "title": "Configuration Version",
+            "default": "1.0.0"
+          },
+          "data_source": {
+            "$ref": "#/components/schemas/DataSource",
+            "default": "SIMULATED"
+          }
+        },
+        "type": "object",
+        "required": [
+          "mission_id",
+          "mission_name",
+          "destination",
+          "mission_phase",
+          "gravity_environment",
+          "gravity_value_g",
+          "habitat_type",
+          "communication_characteristics"
+        ],
+        "title": "MissionProfile"
+      },
+      "MissionSelectRequest": {
+        "properties": {
+          "mission_id": {
+            "type": "string",
+            "title": "Mission Id"
+          },
+          "operator_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Operator Id",
+            "default": "MISSION_CONTROLLER_AUTO"
+          },
+          "preserve_previous_observations": {
+            "type": "boolean",
+            "title": "Preserve Previous Observations",
+            "default": true
+          }
+        },
+        "type": "object",
+        "required": [
+          "mission_id"
+        ],
+        "title": "MissionSelectRequest"
+      },
+      "ObservationBatchCreate": {
+        "properties": {
+          "observations": {
+            "items": {
+              "$ref": "#/components/schemas/ObservationCreate"
+            },
+            "type": "array",
+            "title": "Observations"
+          }
+        },
+        "type": "object",
+        "required": [
+          "observations"
+        ],
+        "title": "ObservationBatchCreate"
+      },
+      "ObservationCreate": {
+        "properties": {
+          "parameter": {
+            "type": "string",
+            "title": "Parameter"
+          },
+          "value": {
+            "title": "Value"
+          },
+          "unit": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Unit"
+          },
+          "idempotency_key": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Idempotency Key"
+          },
+          "timestamp": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Timestamp"
+          },
+          "source": {
+            "$ref": "#/components/schemas/DataSource",
+            "default": "SIMULATED"
+          },
+          "radiation_weighting_factor": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Radiation Weighting Factor",
+            "description": "Required for converting absorbed dose (Gy) to equivalent dose (Sv)"
+          },
+          "metadata": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Metadata"
+          }
+        },
+        "type": "object",
+        "required": [
+          "parameter",
+          "value"
+        ],
+        "title": "ObservationCreate"
+      },
+      "OperationalState": {
+        "type": "string",
+        "enum": [
+          "NOMINAL",
+          "DEGRADED",
+          "CONTINGENCY",
+          "UNKNOWN",
+          "RECOVERY"
+        ],
+        "title": "OperationalState"
+      },
+      "ParameterBound": {
+        "properties": {
+          "min": {
+            "type": "number",
+            "title": "Min"
+          },
+          "max": {
+            "type": "number",
+            "title": "Max"
+          },
+          "target": {
+            "type": "number",
+            "title": "Target"
+          }
+        },
+        "type": "object",
+        "required": [
+          "min",
+          "max",
+          "target"
+        ],
+        "title": "ParameterBound"
+      },
+      "QualityStatus": {
+        "type": "string",
+        "enum": [
+          "VERIFIED",
+          "UNVERIFIED",
+          "STALE",
+          "CONTRADICTORY",
+          "INVALID_UNIT",
+          "UNKNOWN"
+        ],
+        "title": "QualityStatus"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      }
+    }
+  }
+}
