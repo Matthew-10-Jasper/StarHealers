@@ -39,7 +39,7 @@ export default function App() {
     email: 'sarah.chen@starhealers.space',
     callsign: 'MED-SURGEON-01',
   });
-  const [activeTab, setActiveTab] = useState('astronaut-dashboard');
+  const [activeTab, setActiveTab] = useState('mission-overview');
   const [missions, setMissions] = useState(FALLBACK_MISSIONS);
   const [selectedMission, setSelectedMission] = useState(FALLBACK_MISSIONS[0]);
   const [astronauts, setAstronauts] = useState(FALLBACK_ASTRONAUTS);
@@ -348,6 +348,7 @@ export default function App() {
           onSelectTab={setActiveTab}
           alertsCount={activeAlertsCount}
           currentUser={currentUser}
+          selectedAstronaut={selectedAstronaut}
           onSignOut={() => setAppScreen('welcome')}
         />
 
@@ -413,6 +414,9 @@ export default function App() {
               astronauts={astronauts}
               onSelectAstronaut={setSelectedAstronaut}
               onNavigateTab={setActiveTab}
+              currentUser={currentUser}
+              alerts={alertsState}
+              readings={readingsState}
             />
           )}
 
@@ -422,6 +426,8 @@ export default function App() {
               selectedAstronaut={selectedAstronaut}
               onSelectAstronaut={setSelectedAstronaut}
               onNavigateTab={setActiveTab}
+              mission={selectedMission}
+              readings={readingsState}
             />
           )}
 

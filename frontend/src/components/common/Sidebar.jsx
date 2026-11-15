@@ -10,6 +10,7 @@ import {
   HeartPulse,
   LogOut,
   Radio,
+  User,
 } from 'lucide-react';
 
 export default function Sidebar({
@@ -17,12 +18,26 @@ export default function Sidebar({
   onSelectTab,
   alertsCount,
   currentUser,
+  selectedAstronaut,
   onSignOut,
 }) {
+  const homeNavItems = [
+    {
+      id: 'mission-overview',
+      label: 'Mission Home',
+      icon: Compass,
+    },
+    {
+      id: 'crew-management',
+      label: 'Crew Directory',
+      icon: Users,
+    },
+  ];
+
   const healthNavItems = [
     {
       id: 'astronaut-dashboard',
-      label: 'Workspace Overview',
+      label: 'Health Overview',
       icon: LayoutDashboard,
     },
     {
@@ -49,17 +64,7 @@ export default function Sidebar({
     },
   ];
 
-  const missionNavItems = [
-    {
-      id: 'mission-overview',
-      label: 'Mission Overview',
-      icon: Compass,
-    },
-    {
-      id: 'crew-management',
-      label: 'Crew Directory',
-      icon: Users,
-    },
+  const systemNavItems = [
     {
       id: 'teammate-integrations',
       label: 'Teammate Features',
@@ -71,13 +76,55 @@ export default function Sidebar({
     <aside className="w-64 shrink-0 glass-panel border-r border-slate-800/80 flex flex-col justify-between h-[calc(100vh-57px)]">
       {/* Navigation Sections */}
       <div className="p-3 space-y-6 overflow-y-auto">
-        {/* Health Monitoring Section */}
+        {/* Section 1: Home & Mission Operations */}
         <div>
           <div className="px-3 mb-2 flex items-center justify-between">
             <span className="text-[10px] font-mono tracking-wider text-slate-400 uppercase">
-              Health Workspace
+              Mission Launchpad
             </span>
-            <span className="w-1.5 h-1.5 rounded-full bg-cyan-400" />
+          </div>
+
+          <nav className="space-y-1">
+            {homeNavItems.map((item) => {
+              const Icon = item.icon;
+              const isActive = activeTab === item.id;
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => onSelectTab(item.id)}
+                  className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-xs font-medium transition text-left cursor-pointer ${
+                    isActive
+                      ? 'bg-gradient-to-r from-cyan-950/60 to-slate-900 border border-cyan-500/40 text-cyan-300 shadow-sm'
+                      : 'text-slate-300 hover:text-white hover:bg-slate-800/50 border border-transparent'
+                  }`}
+                >
+                  <div className="flex items-center gap-2.5">
+                    <Icon
+                      className={`w-4 h-4 ${
+                        isActive ? 'text-cyan-400' : 'text-slate-400'
+                      }`}
+                    />
+                    <span>{item.label}</span>
+                  </div>
+                </button>
+              );
+            })}
+          </nav>
+        </div>
+
+        {/* Section 2: Health Workspace */}
+        <div>
+          <div className="px-3 mb-2 flex items-center justify-between">
+            <div className="flex items-center gap-1.5 min-w-0">
+              <span className="text-[10px] font-mono tracking-wider text-slate-400 uppercase">
+                Health Workspace
+              </span>
+            </div>
+            {selectedAstronaut && (
+              <span className="text-[9px] font-mono text-cyan-400 truncate max-w-[80px]">
+                {selectedAstronaut.name.split(' ')[0]}
+              </span>
+            )}
           </div>
 
           <nav className="space-y-1">
@@ -119,16 +166,16 @@ export default function Sidebar({
           </nav>
         </div>
 
-        {/* Mission & Operations Section */}
+        {/* Section 3: Platform Features */}
         <div>
           <div className="px-3 mb-2">
             <span className="text-[10px] font-mono tracking-wider text-slate-400 uppercase">
-              Operations & Crew
+              System
             </span>
           </div>
 
           <nav className="space-y-1">
-            {missionNavItems.map((item) => {
+            {systemNavItems.map((item) => {
               const Icon = item.icon;
               const isActive = activeTab === item.id;
               return (
@@ -171,7 +218,7 @@ export default function Sidebar({
           <button
             onClick={onSignOut}
             title="Sign Out to Welcome Screen"
-            className="p-1.5 rounded-lg text-slate-400 hover:text-rose-400 hover:bg-slate-800 transition-colors"
+            className="p-1.5 rounded-lg text-slate-400 hover:text-rose-400 hover:bg-slate-800 transition-colors cursor-pointer"
           >
             <LogOut className="w-4 h-4" />
           </button>
