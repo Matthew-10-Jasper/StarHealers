@@ -91,7 +91,7 @@ export default function AstronautDashboardView({
               onClick={() => onNavigateTab('triage-alerts')}
               className="text-xs font-mono text-rose-300 hover:text-white flex items-center gap-1 underline"
             >
-              Open Triage Engine <ArrowRight className="w-3 h-3" />
+              View Health Alerts <ArrowRight className="w-3 h-3" />
             </button>
           </div>
 
@@ -123,9 +123,9 @@ export default function AstronautDashboardView({
             </h3>
             <button
               onClick={() => onNavigateTab('vitals-monitoring')}
-              className="text-xs font-mono text-cyan-400 hover:text-cyan-300 flex items-center gap-1"
+              className="text-xs font-mono text-cyan-400 hover:text-cyan-300 flex items-center gap-1 cursor-pointer"
             >
-              Full Telemetry Suite (9 Vitals) <ArrowRight className="w-3.5 h-3.5" />
+              Open Crew Health <ArrowRight className="w-3.5 h-3.5" />
             </button>
           </div>
 
@@ -154,9 +154,9 @@ export default function AstronautDashboardView({
             </h3>
             <button
               onClick={() => onNavigateTab('body-map')}
-              className="text-xs font-mono text-cyan-400 hover:text-cyan-300 flex items-center gap-1"
+              className="text-xs font-mono text-cyan-400 hover:text-cyan-300 flex items-center gap-1 cursor-pointer"
             >
-              Interactive <ArrowRight className="w-3.5 h-3.5" />
+              View Body Systems <ArrowRight className="w-3.5 h-3.5" />
             </button>
           </div>
 

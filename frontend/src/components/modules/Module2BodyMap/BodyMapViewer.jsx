@@ -42,16 +42,16 @@ export default function BodyMapViewer({
 
   return (
     <div className="space-y-6">
-      {/* Module 2 Header */}
+      {/* Body Systems Header */}
       <div className="glass-panel rounded-xl p-5 border border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2 mb-1">
             <span className="w-2.5 h-2.5 rounded-full bg-cyan-400 animate-pulse" />
             <h2 className="text-lg font-bold text-slate-100 font-sans tracking-wide">
-              Module 2: Interactive Human Body Map
+              Body Systems
             </h2>
             <span className="text-xs font-mono px-2 py-0.5 rounded bg-cyan-950/80 text-cyan-300 border border-cyan-800/40">
-              SVG Anatomical Telemetry
+              Interactive Anatomy
             </span>
           </div>
           <p className="text-xs text-slate-400">
