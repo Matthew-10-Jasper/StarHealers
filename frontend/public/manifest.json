@@ -1,0 +1,19 @@
+{
+  "name": "StarHealers — Astronaut Health & Medical Platform",
+  "short_name": "StarHealers",
+  "description": "Intelligent Astronaut Health Monitoring and Medical Support Platform for Deep-Space Exploration",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#060913",
+  "theme_color": "#060913",
+  "orientation": "any",
+  "categories": ["medical", "health", "productivity"],
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
