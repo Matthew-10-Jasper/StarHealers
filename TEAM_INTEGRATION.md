@@ -1,10 +1,10 @@
-# 🤝 StarHealers — Team Integration & Architecture Guide
+#  StarHealers — Team Integration & Architecture Guide
 
 This document defines the interface contracts, database docking tables, and collaborative Git workflow between **Suba** (assigned to Modules 1, 2, and 3) and **Matthew / Teammates** (responsible for Webcam rPPG, Z-score Anomaly Detection, Explainable AI Advisor, and PVT Cognitive Tests).
 
 ---
 
-## 🎯 Division of Module Ownership
+##  Division of Module Ownership
 
 | Module Name | Team Palette | Primary & Secondary Colors | Owner | Tech Stack | Status in `Suba` Branch |
 |---|---|---|---|---|---|
@@ -19,7 +19,7 @@ This document defines the interface contracts, database docking tables, and coll
 
 ---
 
-## 🔌 Teammate Anomaly Dock (Palette 3 — Matthew)
+##  Teammate Anomaly Dock (Palette 3 — Matthew)
 
 To ensure that Matthew can develop his enhanced Z-score anomaly detector without colliding with Suba's rule-based triage engine, a dedicated database table and Python hook have been established.
 
@@ -61,7 +61,7 @@ In `backend/rules_engine.py`, the function `evaluate_astronaut_telemetry(...)` a
 
 ---
 
-## 📷 Webcam rPPG Integration (Palette 1 — Matthew)
+##  Webcam rPPG Integration (Palette 1 — Matthew)
 
 When Matthew completes his optical pulse estimation script using OpenCV and MediaPipe:
 1. He can POST his estimated pulse readings directly into the health stream:
@@ -82,7 +82,7 @@ When Matthew completes his optical pulse estimation script using OpenCV and Medi
 
 ---
 
-## 🛡️ Collaborative Git Workflow & Branch Rules
+##  Collaborative Git Workflow & Branch Rules
 
 To prevent accidental code overwrites or merge collisions:
 1. **Branch Isolation:**
