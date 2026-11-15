@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Activity, ShieldAlert, Radio, User, ChevronDown, Clock, Globe } from 'lucide-react';
+import { Activity, ShieldAlert, Radio, User, Clock, Globe, LogOut } from 'lucide-react';
 import SeverityBadge from './SeverityBadge';
 
 export default function Navbar({
@@ -12,6 +12,8 @@ export default function Navbar({
   isLiveSimulating,
   onToggleLiveSimulating,
   activeAlertsCount,
+  currentUser,
+  onSignOut,
 }) {
   const [currentTime, setCurrentTime] = useState(new Date().toUTCString());
 
@@ -25,7 +27,7 @@ export default function Navbar({
   return (
     <header className="sticky top-0 z-40 w-full glass-panel border-b border-slate-800/80 px-4 lg:px-6 py-2.5">
       <div className="flex items-center justify-between gap-4">
-        {/* Left: Project Brand & System Badge */}
+        {/* Left: StarHealers Brand */}
         <div className="flex items-center gap-3">
           <div className="relative flex items-center justify-center w-9 h-9 rounded-lg bg-gradient-to-br from-cyan-500/20 to-blue-600/20 border border-cyan-500/40 shadow-cyan-glow">
             <Activity className="w-5 h-5 text-cyan-400" />
@@ -39,12 +41,9 @@ export default function Navbar({
               <span className="text-base font-bold tracking-wider text-slate-100 font-sans">
                 STAR<span className="text-cyan-400">HEALERS</span>
               </span>
-              <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-800 text-cyan-300 border border-slate-700">
-                v2.4-MED
-              </span>
             </div>
             <p className="text-[10px] font-mono tracking-widest text-slate-400 uppercase">
-              Autonomous Crew Medical Officer
+              Aerospace Medical Platform
             </p>
           </div>
         </div>
@@ -96,17 +95,17 @@ export default function Navbar({
           </div>
         </div>
 
-        {/* Right: Live Stream Toggle, Clock & Medical Officer Suba */}
+        {/* Right: Live Stream Toggle, Clock & Medical Officer Session */}
         <div className="flex items-center gap-3">
           {/* Live Simulator Status Toggle */}
           <button
             onClick={onToggleLiveSimulating}
-            className={`flex items-center gap-2 px-2.5 py-1.5 rounded-lg border text-xs font-mono transition ${
+            className={`flex items-center gap-2 px-2.5 py-1.5 rounded-lg border text-xs font-mono transition cursor-pointer ${
               isLiveSimulating
                 ? 'bg-cyan-950/40 border-cyan-500/50 text-cyan-300'
                 : 'bg-slate-900/80 border-slate-800 text-slate-400'
             }`}
-            title="Toggle autonomous telemetry simulator"
+            title="Toggle autonomous telemetry streaming"
           >
             <Radio className={`w-3.5 h-3.5 ${isLiveSimulating ? 'text-cyan-400 animate-pulse' : 'text-slate-500'}`} />
             <span className="hidden sm:inline">
@@ -128,15 +127,28 @@ export default function Navbar({
             </div>
           )}
 
-          {/* Medical Officer Badge */}
+          {/* Medical Officer Profile Indicator */}
           <div className="flex items-center gap-2 pl-2 border-l border-slate-800">
             <div className="w-7 h-7 rounded-full bg-cyan-900/60 border border-cyan-500/40 flex items-center justify-center text-cyan-300 font-bold text-xs">
-              S
+              {currentUser?.name ? currentUser.name[0] : 'M'}
             </div>
             <div className="hidden lg:block text-left">
-              <p className="text-xs font-medium text-slate-200">Suba</p>
-              <p className="text-[10px] font-mono text-slate-400">Medical Officer</p>
+              <p className="text-xs font-medium text-slate-200">
+                {currentUser?.name || 'Dr. Sarah Chen'}
+              </p>
+              <p className="text-[10px] font-mono text-slate-400">
+                {currentUser?.role || 'Flight Surgeon'}
+              </p>
             </div>
+            {onSignOut && (
+              <button
+                onClick={onSignOut}
+                title="Sign Out"
+                className="p-1 rounded text-slate-400 hover:text-rose-400 hover:bg-slate-800/60 transition ml-1"
+              >
+                <LogOut className="w-3.5 h-3.5" />
+              </button>
+            )}
           </div>
         </div>
       </div>

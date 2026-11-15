@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import Navbar from './components/common/Navbar';
 import Sidebar from './components/common/Sidebar';
+import WelcomeView from './components/views/WelcomeView';
+import LoginView from './components/views/LoginView';
 import AstronautDashboardView from './components/views/AstronautDashboardView';
 import VitalsDashboard from './components/modules/Module1Vitals/VitalsDashboard';
 import BodyMapViewer from './components/modules/Module2BodyMap/BodyMapViewer';
@@ -29,6 +31,14 @@ import {
 } from './data/mockData';
 
 export default function App() {
+  const [appScreen, setAppScreen] = useState('welcome'); // 'welcome' | 'login' | 'authenticated'
+  const [currentUser, setCurrentUser] = useState({
+    id: 'ASTRO-001',
+    name: 'Dr. Sarah Chen',
+    role: 'Flight Surgeon',
+    email: 'sarah.chen@starhealers.space',
+    callsign: 'MED-SURGEON-01',
+  });
   const [activeTab, setActiveTab] = useState('astronaut-dashboard');
   const [missions, setMissions] = useState(FALLBACK_MISSIONS);
   const [selectedMission, setSelectedMission] = useState(FALLBACK_MISSIONS[0]);
@@ -280,9 +290,42 @@ export default function App() {
   const activeAlertsCount = alertsState.filter((a) => a.status === 'ACTIVE').length;
   const currentReadings = readingsState[selectedAstronaut.id] || {};
 
+  // Entry Experience Screen 1: Welcome & Landing
+  if (appScreen === 'welcome') {
+    return (
+      <WelcomeView
+        onEnter={() => setAppScreen('login')}
+        onQuickDemo={() => {
+          setCurrentUser({
+            id: 'ASTRO-001',
+            name: 'Dr. Sarah Chen',
+            role: 'Flight Surgeon',
+            email: 'sarah.chen@starhealers.space',
+            callsign: 'MED-SURGEON-01',
+          });
+          setAppScreen('authenticated');
+        }}
+      />
+    );
+  }
+
+  // Entry Experience Screen 2: Medical Officer Sign-In
+  if (appScreen === 'login') {
+    return (
+      <LoginView
+        onLoginSuccess={(user) => {
+          setCurrentUser(user);
+          setAppScreen('authenticated');
+        }}
+        onBackToWelcome={() => setAppScreen('welcome')}
+      />
+    );
+  }
+
+  // Entry Experience Screen 3-5: Authenticated Aerospace Health Platform
   return (
     <div className="min-h-screen bg-[#060913] text-[#F8FAFC] flex flex-col font-sans selection:bg-cyan-500 selection:text-black">
-      {/* Top Mission Control Navigation Bar */}
+      {/* Top Navigation Bar */}
       <Navbar
         missions={missions}
         selectedMission={selectedMission}
@@ -293,6 +336,8 @@ export default function App() {
         isLiveSimulating={isLiveSimulating}
         onToggleLiveSimulating={() => setIsLiveSimulating(!isLiveSimulating)}
         activeAlertsCount={activeAlertsCount}
+        currentUser={currentUser}
+        onSignOut={() => setAppScreen('welcome')}
       />
 
       {/* Main Layout: Fixed Sidebar + Scrollable Content */}
@@ -302,6 +347,8 @@ export default function App() {
           activeTab={activeTab}
           onSelectTab={setActiveTab}
           alertsCount={activeAlertsCount}
+          currentUser={currentUser}
+          onSignOut={() => setAppScreen('welcome')}
         />
 
         {/* Dynamic Workspace Canvas */}
