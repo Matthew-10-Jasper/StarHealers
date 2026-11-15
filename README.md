@@ -1,4 +1,4 @@
-# 🚀 StarHealers — Autonomous Crew Medical Officer for Deep-Space Missions
+#  StarHealers — Autonomous Crew Medical Officer for Deep-Space Missions
 
 [![Git Branch](https://img.shields.io/badge/branch-Suba-00F0FF?style=for-the-badge&logo=git)](https://github.com/Matthew-10-Jasper/StarHealers/tree/Suba)
 [![Frontend](https://img.shields.io/badge/Frontend-React%20%7C%20Vite%20%7C%20Tailwind%20%7C%20Recharts-3B82F6?style=for-the-badge&logo=react)](https://github.com/Matthew-10-Jasper/StarHealers)
@@ -9,7 +9,7 @@
 
 ---
 
-## 🛰️ Module Ownership & Architecture
+##  Module Ownership & Architecture
 
 This repository branch (`Suba`) houses the complete full-stack implementation of the **three foundational assigned modules**, built with clean, decoupled integration interfaces for teammate-owned features.
 
@@ -33,7 +33,7 @@ This repository branch (`Suba`) houses the complete full-stack implementation of
 
 ---
 
-## 🎨 Mandatory Design System & Seven-Module Color Palettes
+##  Mandatory Design System & Seven-Module Color Palettes
 
 The user interface follows a strict **Mission Control / Dark-Space** aesthetic based on the **70–20–10 rule** (70% dark surfaces, 20% primary module identity, 10% accent glow).
 
@@ -63,7 +63,7 @@ Module colors never alter clinical severity meanings:
 
 ---
 
-## 🔬 Monitored Physiological Parameters (Module 1)
+##  Monitored Physiological Parameters (Module 1)
 
 Every telemetry packet stores mandatory source provenance (`SIMULATED`, `RESEARCH DATASET`, `CONNECTED SENSOR`, `MANUAL INPUT`) and data quality status:
 
@@ -81,7 +81,7 @@ Every telemetry packet stores mandatory source provenance (`SIMULATED`, `RESEARC
 
 ---
 
-## 🫀 Interactive Human Body Map (Module 2)
+##  Interactive Human Body Map (Module 2)
 
 * **Holographic Medical Vector Silhouette:** Custom SVG vector geometry rendering anatomical contours, internal vertebral spinal column, ribcage, and bio-nodes.
 * **Anterior & Posterior Views:** Instant toggle between front and back views.
@@ -96,7 +96,7 @@ Every telemetry packet stores mandatory source provenance (`SIMULATED`, `RESEARC
 
 ---
 
-## ⚖️ Intelligent Health Triage Engine (Module 3)
+##  Intelligent Health Triage Engine (Module 3)
 
 The triage engine evaluates single-signal thresholds and multi-signal compound patterns:
 * **Multi-Signal Autonomic Fatigue Compound Pattern:** Correlates elevated resting HR (> 90 bpm), suppressed vagal HRV (< 40 ms), chronic sleep truncation (< 5.5 hrs), and elevated stress index (> 65 pts).
@@ -106,7 +106,7 @@ The triage engine evaluates single-signal thresholds and multi-signal compound p
 
 ---
 
-## 📂 Project Structure
+##  Project Structure
 
 ```
 StarHealers/
@@ -154,7 +154,7 @@ StarHealers/
 
 ---
 
-## ⚡ Quick Start & Execution Guide
+##  Quick Start & Execution Guide
 
 ### Prerequisites
 * **Node.js:** v18+ (verified on v26.7.0)
@@ -181,7 +181,7 @@ Open your browser at **[http://localhost:5173](http://localhost:5173)**.
 
 ---
 
-## 🧪 Automated Test Suite Execution
+##  Automated Test Suite Execution
 
 All test suites can be executed inside the terminal:
 
@@ -201,7 +201,7 @@ cd frontend && npm run build
 
 ---
 
-## 🎬 NASA Hackathon Demonstration Walkthrough
+##  NASA Hackathon Demonstration Walkthrough
 
 1. **Mission Selection:** Switch from *Mars Transit (Ares V)* to *Lunar Outpost* in the header. Observe communications delay update from 14 minutes to 1.3 seconds.
 2. **Crew Telemetry Switching:**
