@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Navbar from './components/common/Navbar';
 import Sidebar from './components/common/Sidebar';
 import AstronautDashboardView from './components/views/AstronautDashboardView';
@@ -11,88 +11,150 @@ import CrewManagementView from './components/views/CrewManagementView';
 import TeammateIntegrationView from './components/views/TeammateIntegrationView';
 
 import {
-  MISSIONS,
-  ASTRONAUTS,
-  CURRENT_READINGS,
-  TRIAGE_ALERTS,
+  getMissions,
+  getAstronauts,
+  getLatestHealth,
+  getHealthHistory,
+  postHealthReading,
+  getAlerts,
+  resolveAlert,
+} from './services/api';
+
+import {
+  MISSIONS as FALLBACK_MISSIONS,
+  ASTRONAUTS as FALLBACK_ASTRONAUTS,
+  CURRENT_READINGS as FALLBACK_READINGS,
+  TRIAGE_ALERTS as FALLBACK_ALERTS,
   generateHistoricalData,
 } from './data/mockData';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('astronaut-dashboard');
-  const [selectedMission, setSelectedMission] = useState(MISSIONS[0]); // Mars Transit
-  const [astronauts, setAstronauts] = useState(ASTRONAUTS);
-  const [selectedAstronaut, setSelectedAstronaut] = useState(ASTRONAUTS[0]); // Dr. Sarah Chen
-  const [readingsState, setReadingsState] = useState(CURRENT_READINGS);
-  const [alertsState, setAlertsState] = useState(TRIAGE_ALERTS);
+  const [missions, setMissions] = useState(FALLBACK_MISSIONS);
+  const [selectedMission, setSelectedMission] = useState(FALLBACK_MISSIONS[0]);
+  const [astronauts, setAstronauts] = useState(FALLBACK_ASTRONAUTS);
+  const [selectedAstronaut, setSelectedAstronaut] = useState(FALLBACK_ASTRONAUTS[0]);
+  const [readingsState, setReadingsState] = useState(FALLBACK_READINGS);
+  const [alertsState, setAlertsState] = useState(FALLBACK_ALERTS);
   const [timeRange, setTimeRange] = useState('24h');
   const [isLiveSimulating, setIsLiveSimulating] = useState(true);
   const [historicalData, setHistoricalData] = useState(() =>
-    generateHistoricalData(ASTRONAUTS[0].id, '24h')
+    generateHistoricalData(FALLBACK_ASTRONAUTS[0].id, '24h')
   );
+  const [backendConnected, setBackendConnected] = useState(false);
 
-  // Update historical data when astronaut or time range changes
+  // Load Initial Data from Backend
   useEffect(() => {
-    setHistoricalData(generateHistoricalData(selectedAstronaut.id, timeRange));
-  }, [selectedAstronaut.id, timeRange]);
+    async function loadInitialData() {
+      try {
+        const [fetchedMissions, fetchedAstronauts, fetchedAlerts] = await Promise.all([
+          getMissions(),
+          getAstronauts(),
+          getAlerts(),
+        ]);
+        if (fetchedMissions && fetchedMissions.length > 0) setMissions(fetchedMissions);
+        if (fetchedAstronauts && fetchedAstronauts.length > 0) {
+          setAstronauts(fetchedAstronauts);
+          setSelectedAstronaut(fetchedAstronauts[0]);
+        }
+        if (fetchedAlerts && fetchedAlerts.length > 0) setAlertsState(fetchedAlerts);
+        setBackendConnected(true);
+      } catch (err) {
+        console.warn('Initial backend load failed, using local mock data.');
+      }
+    }
+    loadInitialData();
+  }, []);
 
-  // Live telemetry simulation ticker
+  // Fetch Vitals & Telemetry when Selected Astronaut or TimeRange Changes
+  const loadAstronautTelemetry = useCallback(async (astroId, range) => {
+    try {
+      const [vitals, history] = await Promise.all([
+        getLatestHealth(astroId),
+        getHealthHistory(astroId, range),
+      ]);
+      setReadingsState((prev) => ({
+        ...prev,
+        [astroId]: vitals,
+      }));
+      if (history && history.length > 0) {
+        setHistoricalData(history);
+      }
+    } catch (err) {
+      console.warn(`Error loading telemetry for ${astroId}:`, err);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadAstronautTelemetry(selectedAstronaut.id, timeRange);
+  }, [selectedAstronaut.id, timeRange, loadAstronautTelemetry]);
+
+  // Live Telemetry Simulation Loop (Module 1 Live Stream)
   useEffect(() => {
     if (!isLiveSimulating) return;
 
-    const interval = setInterval(() => {
-      setReadingsState((prev) => {
-        const astroId = selectedAstronaut.id;
-        const current = prev[astroId];
-        if (!current || current.heartRate.value === null) return prev;
+    const interval = setInterval(async () => {
+      const astroId = selectedAstronaut.id;
+      const current = readingsState[astroId];
+      if (!current || !current.heartRate || current.heartRate.value === null) return;
 
-        // Apply gentle physiological micro-oscillation
-        const hrDelta = Math.floor(Math.random() * 3) - 1; // -1, 0, or +1
-        const hrvDelta = Math.floor(Math.random() * 3) - 1;
-        const newHr = Math.max(50, Math.min(130, current.heartRate.value + hrDelta));
-        const newHrv = Math.max(20, Math.min(110, current.hrv.value + hrvDelta));
+      // Realistic micro-oscillation
+      const hrDelta = Math.floor(Math.random() * 3) - 1; // -1, 0, +1
+      const hrvDelta = Math.floor(Math.random() * 3) - 1;
+      const newHr = Math.max(50, Math.min(130, current.heartRate.value + hrDelta));
+      const newHrv = Math.max(20, Math.min(110, current.hrv.value + hrvDelta));
+      const ts = new Date().toISOString();
 
-        return {
-          ...prev,
-          [astroId]: {
-            ...current,
-            heartRate: {
-              ...current.heartRate,
-              value: newHr,
-              timestamp: new Date().toISOString(),
-              source: 'SIMULATED',
-            },
-            hrv: {
-              ...current.hrv,
-              value: newHrv,
-              timestamp: new Date().toISOString(),
-              source: 'SIMULATED',
-            },
-          },
-        };
+      // Persist reading to backend database via REST API
+      postHealthReading(astroId, {
+        metric_name: 'heartRate',
+        value: newHr,
+        unit: 'bpm',
+        source: 'SIMULATED',
+        quality_status: 'GOOD',
+        severity: current.heartRate.severity || 'NORMAL',
+        timestamp: ts,
       });
-    }, 3000);
 
-    return () => clearInterval(interval);
-  }, [isLiveSimulating, selectedAstronaut.id]);
-
-  // Handle Scenario Injections for Demonstrations
-  const handleInjectScenario = (scenario) => {
-    const astroId = selectedAstronaut.id;
-
-    if (scenario === 'nominal') {
+      // Update state locally for instant responsiveness
       setReadingsState((prev) => ({
         ...prev,
         [astroId]: {
           ...prev[astroId],
-          heartRate: { value: 64, unit: 'bpm', source: 'SIMULATED', quality: 'GOOD', timestamp: new Date().toISOString(), status: 'NORMAL' },
-          hrv: { value: 72, unit: 'ms', source: 'SIMULATED', quality: 'GOOD', timestamp: new Date().toISOString(), status: 'NORMAL' },
-          spo2: { value: 99, unit: '%', source: 'SIMULATED', quality: 'GOOD', timestamp: new Date().toISOString(), status: 'NORMAL' },
-          temperature: { value: 36.6, unit: '°C', source: 'SIMULATED', quality: 'GOOD', timestamp: new Date().toISOString(), status: 'NORMAL' },
-          stress: { value: 22, unit: 'pts', source: 'SIMULATED', quality: 'GOOD', timestamp: new Date().toISOString(), status: 'NORMAL' },
-          sleep: { value: 7.8, unit: 'hrs', source: 'SIMULATED', quality: 'GOOD', timestamp: new Date().toISOString(), status: 'NORMAL' },
+          heartRate: {
+            ...prev[astroId].heartRate,
+            value: newHr,
+            timestamp: ts,
+            source: 'SIMULATED',
+          },
+          hrv: {
+            ...prev[astroId].hrv,
+            value: newHrv,
+            timestamp: ts,
+            source: 'SIMULATED',
+          },
         },
       }));
+    }, 3000);
+
+    return () => clearInterval(interval);
+  }, [isLiveSimulating, selectedAstronaut.id, readingsState]);
+
+  // Handle Scenario Injections for Hackathon Demonstration
+  const handleInjectScenario = async (scenario) => {
+    const astroId = selectedAstronaut.id;
+
+    if (scenario === 'nominal') {
+      const updatedReadings = {
+        ...readingsState[astroId],
+        heartRate: { value: 64, unit: 'bpm', source: 'SIMULATED', quality: 'GOOD', timestamp: new Date().toISOString(), severity: 'NORMAL', status: 'NORMAL' },
+        hrv: { value: 74, unit: 'ms', source: 'SIMULATED', quality: 'GOOD', timestamp: new Date().toISOString(), severity: 'NORMAL', status: 'NORMAL' },
+        spo2: { value: 99, unit: '%', source: 'SIMULATED', quality: 'GOOD', timestamp: new Date().toISOString(), severity: 'NORMAL', status: 'NORMAL' },
+        temperature: { value: 36.6, unit: '°C', source: 'SIMULATED', quality: 'GOOD', timestamp: new Date().toISOString(), severity: 'NORMAL', status: 'NORMAL' },
+        stress: { value: 22, unit: 'pts', source: 'SIMULATED', quality: 'GOOD', timestamp: new Date().toISOString(), severity: 'NORMAL', status: 'NORMAL' },
+        sleep: { value: 7.8, unit: 'hrs', source: 'SIMULATED', quality: 'GOOD', timestamp: new Date().toISOString(), severity: 'NORMAL', status: 'NORMAL' },
+      };
+      setReadingsState((prev) => ({ ...prev, [astroId]: updatedReadings }));
       setAstronauts((prev) =>
         prev.map((a) =>
           a.id === astroId
@@ -114,16 +176,14 @@ export default function App() {
       );
       setSelectedAstronaut((prev) => ({ ...prev, status: 'NORMAL' }));
     } else if (scenario === 'fatigue') {
-      setReadingsState((prev) => ({
-        ...prev,
-        [astroId]: {
-          ...prev[astroId],
-          heartRate: { value: 96, unit: 'bpm', source: 'SIMULATED', quality: 'GOOD', timestamp: new Date().toISOString(), status: 'WARNING' },
-          hrv: { value: 32, unit: 'ms', source: 'SIMULATED', quality: 'GOOD', timestamp: new Date().toISOString(), status: 'WARNING' },
-          sleep: { value: 4.5, unit: 'hrs', source: 'SIMULATED', quality: 'GOOD', timestamp: new Date().toISOString(), status: 'WARNING' },
-          stress: { value: 74, unit: 'pts', source: 'SIMULATED', quality: 'GOOD', timestamp: new Date().toISOString(), status: 'WARNING' },
-        },
-      }));
+      const updatedReadings = {
+        ...readingsState[astroId],
+        heartRate: { value: 96, unit: 'bpm', source: 'SIMULATED', quality: 'GOOD', timestamp: new Date().toISOString(), severity: 'WARNING', status: 'WARNING' },
+        hrv: { value: 32, unit: 'ms', source: 'SIMULATED', quality: 'GOOD', timestamp: new Date().toISOString(), severity: 'WARNING', status: 'WARNING' },
+        sleep: { value: 4.5, unit: 'hrs', source: 'SIMULATED', quality: 'GOOD', timestamp: new Date().toISOString(), severity: 'WARNING', status: 'WARNING' },
+        stress: { value: 74, unit: 'pts', source: 'SIMULATED', quality: 'GOOD', timestamp: new Date().toISOString(), severity: 'WARNING', status: 'WARNING' },
+      };
+      setReadingsState((prev) => ({ ...prev, [astroId]: updatedReadings }));
       setAstronauts((prev) =>
         prev.map((a) =>
           a.id === astroId
@@ -142,14 +202,12 @@ export default function App() {
       );
       setSelectedAstronaut((prev) => ({ ...prev, status: 'WARNING' }));
     } else if (scenario === 'hypoxia') {
-      setReadingsState((prev) => ({
-        ...prev,
-        [astroId]: {
-          ...prev[astroId],
-          spo2: { value: 89, unit: '%', source: 'SIMULATED', quality: 'GOOD', timestamp: new Date().toISOString(), status: 'CRITICAL' },
-          heartRate: { value: 114, unit: 'bpm', source: 'SIMULATED', quality: 'GOOD', timestamp: new Date().toISOString(), status: 'CRITICAL' },
-        },
-      }));
+      const updatedReadings = {
+        ...readingsState[astroId],
+        spo2: { value: 89, unit: '%', source: 'SIMULATED', quality: 'GOOD', timestamp: new Date().toISOString(), severity: 'CRITICAL', status: 'CRITICAL' },
+        heartRate: { value: 114, unit: 'bpm', source: 'SIMULATED', quality: 'GOOD', timestamp: new Date().toISOString(), severity: 'CRITICAL', status: 'CRITICAL' },
+      };
+      setReadingsState((prev) => ({ ...prev, [astroId]: updatedReadings }));
       setAstronauts((prev) =>
         prev.map((a) =>
           a.id === astroId
@@ -168,20 +226,18 @@ export default function App() {
       );
       setSelectedAstronaut((prev) => ({ ...prev, status: 'CRITICAL' }));
     } else if (scenario === 'nodata') {
-      setReadingsState((prev) => ({
-        ...prev,
-        [astroId]: {
-          heartRate: { value: null, unit: 'bpm', source: 'SIMULATED', quality: 'UNAVAILABLE', timestamp: new Date().toISOString(), status: 'NO_DATA' },
-          hrv: { value: null, unit: 'ms', source: 'SIMULATED', quality: 'UNAVAILABLE', timestamp: new Date().toISOString(), status: 'NO_DATA' },
-          bloodPressure: { systolic: null, diastolic: null, unit: 'mmHg', source: 'SIMULATED', quality: 'UNAVAILABLE', timestamp: new Date().toISOString(), status: 'NO_DATA' },
-          spo2: { value: null, unit: '%', source: 'SIMULATED', quality: 'UNAVAILABLE', timestamp: new Date().toISOString(), status: 'NO_DATA' },
-          temperature: { value: null, unit: '°C', source: 'SIMULATED', quality: 'UNAVAILABLE', timestamp: new Date().toISOString(), status: 'NO_DATA' },
-          glucose: { value: null, unit: 'mg/dL', source: 'SIMULATED', quality: 'UNAVAILABLE', timestamp: new Date().toISOString(), status: 'NO_DATA' },
-          sleep: { value: null, unit: 'hrs', source: 'SIMULATED', quality: 'UNAVAILABLE', timestamp: new Date().toISOString(), status: 'NO_DATA' },
-          hydration: { value: null, unit: '%', source: 'SIMULATED', quality: 'UNAVAILABLE', timestamp: new Date().toISOString(), status: 'NO_DATA' },
-          stress: { value: null, unit: 'pts', source: 'SIMULATED', quality: 'UNAVAILABLE', timestamp: new Date().toISOString(), status: 'NO_DATA' },
-        },
-      }));
+      const nullReadings = {
+        heartRate: { value: null, unit: 'bpm', source: 'SIMULATED', quality: 'UNAVAILABLE', timestamp: new Date().toISOString(), severity: 'NO_DATA', status: 'NO_DATA' },
+        hrv: { value: null, unit: 'ms', source: 'SIMULATED', quality: 'UNAVAILABLE', timestamp: new Date().toISOString(), severity: 'NO_DATA', status: 'NO_DATA' },
+        bloodPressure: { systolic: null, diastolic: null, unit: 'mmHg', source: 'SIMULATED', quality: 'UNAVAILABLE', timestamp: new Date().toISOString(), severity: 'NO_DATA', status: 'NO_DATA' },
+        spo2: { value: null, unit: '%', source: 'SIMULATED', quality: 'UNAVAILABLE', timestamp: new Date().toISOString(), severity: 'NO_DATA', status: 'NO_DATA' },
+        temperature: { value: null, unit: '°C', source: 'SIMULATED', quality: 'UNAVAILABLE', timestamp: new Date().toISOString(), severity: 'NO_DATA', status: 'NO_DATA' },
+        glucose: { value: null, unit: 'mg/dL', source: 'SIMULATED', quality: 'UNAVAILABLE', timestamp: new Date().toISOString(), severity: 'NO_DATA', status: 'NO_DATA' },
+        sleep: { value: null, unit: 'hrs', source: 'SIMULATED', quality: 'UNAVAILABLE', timestamp: new Date().toISOString(), severity: 'NO_DATA', status: 'NO_DATA' },
+        hydration: { value: null, unit: '%', source: 'SIMULATED', quality: 'UNAVAILABLE', timestamp: new Date().toISOString(), severity: 'NO_DATA', status: 'NO_DATA' },
+        stress: { value: null, unit: 'pts', source: 'SIMULATED', quality: 'UNAVAILABLE', timestamp: new Date().toISOString(), severity: 'NO_DATA', status: 'NO_DATA' },
+      };
+      setReadingsState((prev) => ({ ...prev, [astroId]: nullReadings }));
       setAstronauts((prev) =>
         prev.map((a) =>
           a.id === astroId
@@ -205,8 +261,9 @@ export default function App() {
     }
   };
 
-  // Handle Alert Acknowledging
-  const handleAcknowledgeAlert = (alertId) => {
+  // Handle Alert Acknowledging (persisting to SQLite backend)
+  const handleAcknowledgeAlert = async (alertId) => {
+    await resolveAlert(alertId, 'USR-MED-01');
     setAlertsState((prev) =>
       prev.map((a) =>
         a.id === alertId
@@ -227,7 +284,7 @@ export default function App() {
     <div className="min-h-screen bg-[#060913] text-[#F8FAFC] flex flex-col font-sans selection:bg-cyan-500 selection:text-black">
       {/* Top Mission Control Navigation Bar */}
       <Navbar
-        missions={MISSIONS}
+        missions={missions}
         selectedMission={selectedMission}
         onSelectMission={setSelectedMission}
         astronauts={astronauts}
@@ -303,7 +360,7 @@ export default function App() {
 
           {activeTab === 'mission-overview' && (
             <MissionOverviewView
-              missions={MISSIONS}
+              missions={missions}
               selectedMission={selectedMission}
               onSelectMission={setSelectedMission}
               astronauts={astronauts}
