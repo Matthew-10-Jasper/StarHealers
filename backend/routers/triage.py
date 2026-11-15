@@ -1,12 +1,13 @@
 """
 Intelligent Health Triage Engine API Router (Module 3 - Rule-Based Alert & Triage)
-Provides endpoints to list active and resolved alerts, acknowledge/resolve incidents,
-and evaluate current multi-signal physiological telemetry against configurable clinical rules.
+Provides endpoints to list active and resolved alerts, configure demonstration medical rules,
+acknowledge/resolve incidents, and execute multi-signal explainable triage evaluations.
 """
 
 from fastapi import APIRouter, HTTPException, Query, status
 from typing import List, Optional, Dict, Any
 import crud
+import rules_engine
 from schemas import (
     TriageAlertResponse,
     AlertResolutionRequest,
@@ -84,6 +85,45 @@ def resolve_alert_endpoint(alert_id: str, payload: AlertResolutionRequest):
     }
 
 
+# ==========================================
+# RULE ENGINE CONFIGURATION ENDPOINTS
+# ==========================================
+
+@router.get("/triage/rules")
+def get_configured_rules():
+    """Retrieve current clinical thresholds and active rule configurations."""
+    return {
+        "thresholds": rules_engine.get_current_thresholds(),
+        "disclaimer": "Thresholds represent demonstration parameters aligned with NASA Flight Rule medical guidelines."
+    }
+
+
+@router.post("/triage/rules")
+def update_configured_rules(thresholds: Dict[str, Any]):
+    """Update configurable clinical rule thresholds."""
+    updated = rules_engine.update_thresholds(thresholds)
+    return {
+        "success": True,
+        "message": "Clinical rule thresholds updated successfully",
+        "thresholds": updated
+    }
+
+
+@router.post("/triage/rules/reset")
+def reset_configured_rules():
+    """Reset all clinical rule thresholds to NASA baseline standards."""
+    resetted = rules_engine.reset_thresholds()
+    return {
+        "success": True,
+        "message": "Reset to NASA standard thresholds complete",
+        "thresholds": resetted
+    }
+
+
+# ==========================================
+# RULE EVALUATION ENDPOINT
+# ==========================================
+
 @router.post("/triage/evaluate", response_model=TriageEvaluateResponse)
 def evaluate_triage_rules(payload: TriageEvaluateRequest):
     """
@@ -94,58 +134,34 @@ def evaluate_triage_rules(payload: TriageEvaluateRequest):
     if not astro:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Astronaut '{payload.astronaut_id}' not found.")
 
-    triggered = []
-    highest_severity = "NORMAL"
+    readings = {
+        "heartRate": payload.heartRate,
+        "hrv": payload.hrv,
+        "spo2": payload.spo2,
+        "sleep": payload.sleep,
+        "stress": payload.stress,
+        "temperature": payload.temperature,
+        "hydration": payload.hydration,
+    }
 
-    # Rule 1: Acute Hypoxic Respiratory Depletion
-    if payload.spo2 is not None and payload.spo2 < 92.0:
-        hr = payload.heartRate or 80.0
-        highest_severity = "CRITICAL"
-        triggered.append({
-            "ruleId": "RULE-HYPOXIA-ACUTE-01",
-            "title": "Acute Hypoxic Respiratory Depletion",
-            "severity": "CRITICAL",
-            "triggerReason": f"SpO2 fell to {payload.spo2}% (< 92% critical threshold) with compensatory HR {hr} bpm.",
-            "contributingMeasurements": [
-                {"name": "SpO2", "value": f"{payload.spo2}%", "threshold": "< 92%", "unit": "%", "status": "CRITICAL"},
-                {"name": "Heart Rate", "value": f"{hr} bpm", "threshold": "> 105 bpm", "unit": "bpm", "status": "CRITICAL" if hr > 105 else "NORMAL"}
-            ]
-        })
+    baseline = {
+        "restingHr": astro["baseline_resting_hr"],
+        "hrv": astro["baseline_hrv"],
+        "spo2": astro["baseline_spo2"],
+    }
 
-    # Rule 2: Multi-Signal Autonomic Fatigue Compound Pattern
-    is_hr_elevated = payload.heartRate is not None and payload.heartRate > 88.0
-    is_hrv_suppressed = payload.hrv is not None and payload.hrv < 40.0
-    is_sleep_reduced = payload.sleep is not None and payload.sleep < 5.5
-    is_stress_high = payload.stress is not None and payload.stress > 65.0
-
-    if (is_hr_elevated and is_hrv_suppressed) or (is_sleep_reduced and is_stress_high):
-        if highest_severity != "CRITICAL":
-            highest_severity = "WARNING"
-        triggered.append({
-            "ruleId": "RULE-FATIGUE-COMPOUND-03",
-            "title": "Multi-Signal Autonomic Fatigue Pattern",
-            "severity": "WARNING",
-            "triggerReason": "Suppressed vagal HRV combined with elevated resting HR, cumulative sleep truncation, and heightened stress index.",
-            "contributingMeasurements": [
-                {"name": "Heart Rate", "value": f"{payload.heartRate} bpm", "threshold": "> 88 bpm", "unit": "bpm", "status": "WARNING"},
-                {"name": "HRV", "value": f"{payload.hrv} ms", "threshold": "< 40 ms", "unit": "ms", "status": "WARNING"},
-                {"name": "Sleep", "value": f"{payload.sleep} hrs", "threshold": "< 5.5 hrs", "unit": "hrs", "status": "WARNING"},
-                {"name": "Stress", "value": f"{payload.stress} pts", "threshold": "> 65 pts", "unit": "pts", "status": "WARNING"}
-            ]
-        })
-
-    explanation = (
-        f"Evaluated 4 clinical rule families for {astro['name']}. "
-        f"{len(triggered)} rule conditions triggered resulting in an aggregate triage level of {highest_severity}."
-        if triggered else
-        f"All monitored physiological parameters are nominal. No clinical triage rules triggered."
+    result = rules_engine.evaluate_astronaut_telemetry(
+        astronaut_id=payload.astronaut_id,
+        astronaut_name=astro["name"],
+        readings=readings,
+        baseline=baseline,
     )
 
     return {
         "astronautId": payload.astronaut_id,
         "evaluatedRulesCount": 4,
-        "severity": highest_severity,
-        "isAlertTriggered": len(triggered) > 0,
-        "triggeredAlerts": triggered,
-        "explanation": explanation
+        "severity": result["highestSeverity"],
+        "isAlertTriggered": result["isAlertTriggered"],
+        "triggeredAlerts": result["activeAlerts"],
+        "explanation": result["explanation"]
     }
