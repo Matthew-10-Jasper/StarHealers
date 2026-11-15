@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import BodyAnatomySvg from './BodyAnatomySvg';
 import RegionDetailPanel from './RegionDetailPanel';
 import { BODY_REGIONS_CONFIG } from '../../../data/mockData';
-import { HeartPulse, Eye, RotateCw, Activity, ShieldCheck } from 'lucide-react';
+import { getBodyRegionDetail, getBodyMap } from '../../../services/api';
+import { HeartPulse, Eye, RotateCw, Activity, ShieldCheck, RefreshCw } from 'lucide-react';
 
 export default function BodyMapViewer({
   astronaut,
@@ -12,8 +13,32 @@ export default function BodyMapViewer({
 }) {
   const [selectedRegion, setSelectedRegion] = useState('heart');
   const [viewMode, setViewMode] = useState('front');
+  const [backendRegionData, setBackendRegionData] = useState(null);
+  const [isLoadingRegion, setIsLoadingRegion] = useState(false);
 
   const regionStatuses = astronaut.bodyRegionStatus || {};
+
+  // Fetch live detailed telemetry for the selected organ region
+  useEffect(() => {
+    let isMounted = true;
+    async function fetchRegionData() {
+      setIsLoadingRegion(true);
+      try {
+        const data = await getBodyRegionDetail(astronaut.id, selectedRegion);
+        if (isMounted && data) {
+          setBackendRegionData(data);
+        }
+      } catch (err) {
+        console.warn(`Could not load backend body map for ${selectedRegion}:`, err);
+      } finally {
+        if (isMounted) setIsLoadingRegion(false);
+      }
+    }
+    fetchRegionData();
+    return () => {
+      isMounted = false;
+    };
+  }, [astronaut.id, selectedRegion]);
 
   return (
     <div className="space-y-6">
@@ -75,9 +100,10 @@ export default function BodyMapViewer({
               <span className="text-slate-100 font-bold">{astronaut.name}</span>
               <span className="text-cyan-400">({astronaut.id})</span>
             </div>
-            <span className="text-[10px] font-mono text-slate-400">
-              VIEW: {viewMode.toUpperCase()}
-            </span>
+            <div className="flex items-center gap-2 text-[10px] font-mono text-slate-400">
+              {isLoadingRegion && <RefreshCw className="w-3 h-3 text-cyan-400 animate-spin" />}
+              <span>VIEW: {viewMode.toUpperCase()}</span>
+            </div>
           </div>
 
           {/* SVG Body Map */}
@@ -134,11 +160,11 @@ export default function BodyMapViewer({
         <div className="lg:col-span-6">
           <RegionDetailPanel
             regionId={selectedRegion}
-            regionConfig={BODY_REGIONS_CONFIG[selectedRegion]}
-            regionStatus={regionStatuses[selectedRegion]}
+            regionConfig={backendRegionData || BODY_REGIONS_CONFIG[selectedRegion]}
+            regionStatus={backendRegionData?.status || regionStatuses[selectedRegion]}
             astronaut={astronaut}
-            readings={readings}
-            alerts={alerts}
+            readings={backendRegionData?.currentReadings || readings}
+            alerts={backendRegionData?.activeAlerts || alerts}
             onNavigateToMetric={onNavigateToMetric}
           />
         </div>
